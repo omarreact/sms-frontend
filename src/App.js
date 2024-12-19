@@ -9,28 +9,29 @@ import {
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "./firebaseConfig";
-import StudentDashboard from "./dashboard/StudentDashboard";
-import TeacherDashboard from "./dashboard/TeacherDashboard";
-import AdminDashboard from "./dashboard/AdminDashboard";
+import "bootstrap/dist/css/bootstrap.min.css";
+
+import StudentDashboard from "./dashboard/Student/StudentDashboard";
+import TeacherDashboard from "./dashboard/Teacher/TeacherDashboard";
+import AdminDashboard from "./dashboard/Admin/AdminDashboard";
+import AccountsDashboard from "./dashboard/Accounts/AccountsDashboard";
 import Register from "./components/Register";
 import Login from "./components/Login";
 
 const App = () => {
-  const [user, setUser] = useState(null); // Stores the logged-in user
-  const [role, setRole] = useState(""); // Stores the user's role
-  const [userDetails, setUserDetails] = useState(null); // Stores user details from Firestore
-  const [loading, setLoading] = useState(true); // Loading state
+  const [user, setUser] = useState(null);
+  const [role, setRole] = useState("");
+  const [userDetails, setUserDetails] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Listen for authentication state changes
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
-        // Fetch user role and other details from Firestore
         const userDoc = await getDoc(doc(db, "users", currentUser.uid));
         if (userDoc.exists()) {
           setRole(userDoc.data().role);
-          setUserDetails(userDoc.data()); // Store all user details
+          setUserDetails(userDoc.data());
           console.log(userDoc.data());
         }
       }
@@ -42,76 +43,138 @@ const App = () => {
 
   const handleLogout = async () => {
     try {
-      await signOut(auth); // Sign out the user
-      setUser(null); // Reset the user state
-      setRole(""); // Reset the role state
-      setUserDetails(null); // Reset user details
+      await signOut(auth);
+      setUser(null);
+      setRole("");
+      setUserDetails(null);
       alert("You have been logged out.");
     } catch (error) {
       console.error("Logout failed:", error.message);
     }
   };
 
-  if (loading) return <div>Loading...</div>; // Show a loading state
+  if (loading)
+    return (
+      <div className="text-center my-5">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
 
   return (
     <Router>
       <div>
-        <nav>
-          <Link to="/">Home</Link> |{" "}
-          {!user && <Link to="/register">Register</Link>} |{" "}
-          {!user && <Link to="/login">Login</Link>} |{" "}
-          {user && <Link to="/dashboard">Dashboard</Link>} |{" "}
-          {user && (
+        {/* Navbar */}
+        <nav className="navbar navbar-expand-lg navbar-light bg-light">
+          <div className="container-fluid">
+            <Link className="navbar-brand" to="/">
+              Student Management System
+            </Link>
             <button
-              onClick={handleLogout}
-              style={{
-                backgroundColor: "transparent",
-                border: "none",
-                color: "blue",
-                cursor: "pointer",
-              }}
+              className="navbar-toggler"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#navbarNav"
+              aria-controls="navbarNav"
+              aria-expanded="false"
+              aria-label="Toggle navigation"
             >
-              Logout
+              <span className="navbar-toggler-icon"></span>
             </button>
-          )}
+            <div className="collapse navbar-collapse" id="navbarNav">
+              <ul className="navbar-nav ms-auto">
+                {/* <li className="nav-item">
+                  <Link className="nav-link" to="/">
+                    Home
+                  </Link>
+                </li> */}
+                {!user && (
+                  <>
+                    {/* <li className="nav-item">
+                      <Link className="nav-link" to="/register">
+                        Register
+                      </Link>
+                    </li> */}
+                    <li className="nav-item">
+                      <Link className="nav-link" to="/login">
+                        Login
+                      </Link>
+                    </li>
+                  </>
+                )}
+                {user && role === "admin" && (
+                  <li className="nav-item">
+                    <Link className="nav-link" to="/register">
+                      Register
+                    </Link>
+                  </li>
+                )}
+                {user && (
+                  <>
+                    <li className="nav-item">
+                      <Link className="nav-link" to="/dashboard">
+                        Dashboard
+                      </Link>
+                    </li>
+                    <li className="nav-item">
+                      <button
+                        className="btn btn-link nav-link"
+                        onClick={handleLogout}
+                      >
+                        Logout
+                      </button>
+                    </li>
+                  </>
+                )}
+              </ul>
+            </div>
+          </div>
         </nav>
 
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<Home />} />
-          {!user && <Route path="/register" element={<Register />} />}
-          {!user && <Route path="/login" element={<Login />} />}
-
-          {/* Protected Routes */}
-          {user && role === "student" && (
-            <Route path="/dashboard" element={<StudentDashboard />} />
-          )}
-          {user && role === "teacher" && (
-            <Route path="/dashboard" element={<TeacherDashboard />} />
-          )}
-          {user && role === "admin" && (
-            <Route path="/dashboard" element={<AdminDashboard />} />
-          )}
-
-          {/* Redirect */}
-          {!user && <Route path="*" element={<Navigate to="/login" />} />}
-          {user && <Route path="*" element={<Navigate to="/dashboard" />} />}
-        </Routes>
+        {/* Routes */}
+        <div className="container mt-4">
+          <Routes>
+            {!user && <Route path="/" element={<Home />} />}
+            {/* {!user && <Route path="/register" element={<Register />} />} */}
+            {!user && <Route path="/login" element={<Login />} />}
+            {user && role === "student" && (
+              <Route path="/dashboard" element={<StudentDashboard />} />
+            )}
+            {user && role === "teacher" && (
+              <Route path="/dashboard" element={<TeacherDashboard />} />
+            )}
+            {user && role === "admin" && (
+              <>
+                <Route path="/dashboard" element={<AdminDashboard />} />
+                <Route path="/register" element={<Register />} />
+              </>
+            )}
+            {user && role === "accounts" && (
+              <Route path="/dashboard" element={<AccountsDashboard />} />
+            )}
+            {!user && <Route path="*" element={<Navigate to="/login" />} />}
+            {user && <Route path="*" element={<Navigate to="/dashboard" />} />}
+          </Routes>
+        </div>
 
         {/* Display User Details */}
         {user && userDetails && (
-          <div>
-            <h3>User Details</h3>
-            <p>
-              <strong>Name:</strong> {userDetails.firstName}
-            </p>
-            <p>
-              <strong>Email:</strong> {userDetails.email}
-            </p>
-            <p>
-              <strong>Role:</strong> {role}
-            </p>
+          <div className="container mt-4">
+            <div className="card">
+              <div className="card-body">
+                <h3 className="card-title">User Details</h3>
+                <p className="card-text">
+                  <strong>Name:</strong> {userDetails.firstName}
+                </p>
+                <p className="card-text">
+                  <strong>Email:</strong> {userDetails.email}
+                </p>
+                <p className="card-text">
+                  <strong>Role:</strong> {role}
+                </p>
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -121,8 +184,9 @@ const App = () => {
 
 // Home Component
 const Home = () => (
-  <div>
+  <div className="text-center mt-5">
     <h1>Welcome to the Student Management System</h1>
+    <p>Please login or register to continue.</p>
     <Login />
   </div>
 );
