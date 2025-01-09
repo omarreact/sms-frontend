@@ -15,6 +15,12 @@ const Register = () => {
   const [role, setRole] = useState("student");
   const [error, setError] = useState("");
 
+  const generateRegistrationNumber = (role) => {
+    const prefix = role.charAt(0).toUpperCase();
+    const timestamp = Date.now();
+    return `${prefix}-${timestamp}`;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
@@ -38,7 +44,11 @@ const Register = () => {
         });
       }
 
+      const registrationNumber = generateRegistrationNumber(role);
+
       await setDoc(doc(db, "users", user.uid), {
+        userId: user.uid,
+        registrationNumber,
         firstName,
         lastName,
         email,

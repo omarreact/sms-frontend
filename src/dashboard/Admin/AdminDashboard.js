@@ -2,6 +2,7 @@ import React from "react";
 
 import UserList from "../../components/Users/UserList";
 import AllCourse from "../../components/AllCourse/AllCourse";
+import AssignCourse from "../../components/AllCourse/AssignCourse";
 
 const AdminDashboard = () => {
   return (
@@ -10,6 +11,7 @@ const AdminDashboard = () => {
 
       <UserList />
       <AllCourse />
+      <AssignCourse />
     </div>
   );
 };
